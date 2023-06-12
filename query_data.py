@@ -1,7 +1,7 @@
 """Create a ChatVectorDBChain for question/answering."""
-from langchain.callbacks.base import AsyncCallbackManager
+from langchain.callbacks.manager import AsyncCallbackManager
 from langchain.callbacks.tracers import LangChainTracer
-from langchain.chains import ChatVectorDBChain
+from langchain.chains import ConversationalRetrievalChain
 from langchain.chains.chat_vector_db.prompts import (CONDENSE_QUESTION_PROMPT,
                                                      QA_PROMPT)
 from langchain.chains.llm import LLMChain
@@ -12,7 +12,7 @@ from langchain.vectorstores.base import VectorStore
 
 def get_chain(
     vectorstore: VectorStore, question_handler, stream_handler, tracing: bool = False
-) -> ChatVectorDBChain:
+) -> ConversationalRetrievalChain:
     """Create a ChatVectorDBChain for question/answering."""
     # Construct a ChatVectorDBChain with a streaming llm for combine docs
     # and a separate, non-streaming llm for question generation
@@ -27,7 +27,7 @@ def get_chain(
         stream_manager.add_handler(tracer)
 
     question_gen_llm = OpenAI(
-        temperature=0,
+        temperature=1,
         verbose=True,
         callback_manager=question_manager,
     )
@@ -35,7 +35,7 @@ def get_chain(
         streaming=True,
         callback_manager=stream_manager,
         verbose=True,
-        temperature=0,
+        temperature=1,
     )
 
     question_generator = LLMChain(
@@ -45,8 +45,9 @@ def get_chain(
         streaming_llm, chain_type="stuff", prompt=QA_PROMPT, callback_manager=manager
     )
 
-    qa = ChatVectorDBChain(
-        vectorstore=vectorstore,
+    qa = ConversationalRetrievalChain(
+            retriever=vectorstore.as_retriever(),
+
         combine_docs_chain=doc_chain,
         question_generator=question_generator,
         callback_manager=manager,

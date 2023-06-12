@@ -88,7 +88,7 @@ def get_new_chain1(vectorstore) -> Chain:
         example_prompt=_eg_prompt,
         input_variables=["question", "chat_history"],
     )
-    llm = OpenAI(temperature=0, model_name="text-davinci-003")
+    llm = OpenAI(temperature=1, model_name="text-davinci-003")
     key_word_extractor = LLMChain(llm=llm, prompt=prompt)
 
     EXAMPLE_PROMPT = PromptTemplate(
@@ -108,7 +108,7 @@ Question: {question}
 Answer in Markdown:"""
     PROMPT = PromptTemplate(template=template, input_variables=["question", "context"])
     doc_chain = load_qa_chain(
-        OpenAI(temperature=0, model_name="text-davinci-003", max_tokens=-1),
+        OpenAI(temperature=1, model_name="text-davinci-003", max_tokens=-1),
         chain_type="stuff",
         prompt=PROMPT,
         document_prompt=EXAMPLE_PROMPT,
